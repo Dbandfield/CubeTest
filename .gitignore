@@ -1,0 +1,5 @@
+# editor detritus
+.vscode/
+
+# npm dependencies
+node_modules/
