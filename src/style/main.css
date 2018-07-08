@@ -14,6 +14,8 @@ body
 .gui-root
 {
     position: absolute;
+    width: 100%;
+    max-width: 5000px;
 }
 
 .gui-text
@@ -45,6 +47,11 @@ body
 
 .scene
 {
-    width: 90%;
-    height: 90%;
+    /* width: 90%;
+    height: 90%; */
+}
+
+.camera-right
+{
+    margin-right:auto;
 }

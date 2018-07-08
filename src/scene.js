@@ -5,6 +5,7 @@ import PlusIcon from './img/plus.svg';
 import MenuIcon from './img/menu.svg';
 import TrashIcon from './img/trash.svg';
 import ScaleIcon from './img/scale.svg';
+import CameraIcon from './img/camera.svg';
 import { CirclePicker } from 'react-color';
 
 function Confirmation(props)
@@ -72,7 +73,11 @@ class SideBar extends Component
         {
           this.state.deleteConfirm &&
           <Confirmation text = {this.props.delMsg}
-                        yes={()=>{this.props.onDelete()}}
+                        yes={()=>
+                          {
+                            this.props.onDelete();
+                            this.removeConfirm();
+                          }}
                         no={()=> {this.removeConfirm()}} />
         }
 
@@ -128,10 +133,15 @@ class TopBar extends Component
                 </div>
               } 
           </div>
+          {/* <div className='col-sm-7'>
+          </div> */}
+          <div className='col-sm'>
+              <div className='float-right'>
+                <Button img={CameraIcon} onClick={() =>{this.props.onResetCam()}} />
+                </div>
+          </div>
         </div>
       </div>);
-
-
   }
 }
 
@@ -229,7 +239,6 @@ class Cube
   }
 }
 
-
 class ThreeScene extends Component 
 {
   constructor(props) 
@@ -243,6 +252,8 @@ class ThreeScene extends Component
     this.state = {selectedName: '',
                   cubesExist: false,
                   delMsg: ''};
+
+    this.MAX_CUBES = 15;
   }
 
   componentDidMount() 
@@ -405,6 +416,12 @@ class ThreeScene extends Component
     return new THREE.Mesh(geo, mat);
   }
 
+  setInitialCameraPos()
+  {
+    this.camera.position.set(0, 50, 20);
+    this.camera.rotateX(degToRad(-15));  
+  }
+
   setupScene()
   {
     const width = window.innerWidth;
@@ -418,8 +435,7 @@ class ThreeScene extends Component
       1000
     )
 
-    this.camera.position.set(0, 50, 20);
-    this.camera.rotateX(degToRad(-15));
+    this.setInitialCameraPos();
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true })
 
@@ -438,16 +454,19 @@ class ThreeScene extends Component
    */
   newCube()
   {
-    const l = this.cubes.objects.push(new Cube(200, this.scene, this.cubeNames[this.nextName]));
-    this.nextName ++;
-    if(this.nextName >= l) this.nextName = 0;
-    this.cubes.meshes.push(this.cubes.objects[l -1].getMesh());
-    this.selectedCube = l - 1;
-    this.updateSelectedText();
-    this.updateDeleteText();
+    if(this.cubes.objects.length < this.MAX_CUBES)
+    {
+      const l = this.cubes.objects.push(new Cube(200, this.scene, this.cubeNames[this.nextName]));
+      this.nextName ++;
+      if(this.nextName >= l) this.nextName = 0;
+      this.cubes.meshes.push(this.cubes.objects[l -1].getMesh());
+      this.selectedCube = l - 1;
+      this.updateSelectedText();
+      this.updateDeleteText();
 
 
-    this.setState({cubesExist: true});
+      this.setState({cubesExist: true});
+    }
   }
 
   scaleCube(_value)
@@ -500,7 +519,8 @@ class ThreeScene extends Component
                 onNewCube={() => this.newCube()}
                 onSlider={(_val) => {this.scaleCube(_val)}}
                 onNewColour={(_col) => {this.onNewColour(_col)}} 
-                onDelete={() => {this.onDelete()}}/>
+                onDelete={() => {this.onDelete()}}
+                onResetCam={() => {this.setInitialCameraPos()}}/>
 
         <div
           style={{ width: '400px', height: '400px' }}
