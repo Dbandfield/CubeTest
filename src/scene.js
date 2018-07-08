@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import OrbitControls from 'three-orbitcontrols';
 import PlusIcon from './img/plus.svg';
 import MenuIcon from './img/menu.svg';
+import TrashIcon from './img/trash.svg';
+import { CirclePicker } from 'react-color';
 
 function SliderElement(props)
 {
@@ -30,7 +32,14 @@ function SideBar(props)
 {
   return(
     <div className='sidebar'>
+      <br/>
+      <br/>
       <SliderElement onInput={props.onSlider}/>
+      <br/>
+      <br/>
+      <CirclePicker onChangeComplete={props.onNewColour}/>
+      <Button img={TrashIcon} onClick={() => {props.onDelete()}} />
+
     </div>
   );
    
@@ -72,13 +81,15 @@ class TopBar extends Component
             {
               this.state.displaySidebar &&
               <div className='row'>
-                <SideBar onSlider={this.props.onSlider} />
+                <SideBar onSlider={this.props.onSlider}
+                          onNewColour = {this.props.onNewColour} 
+                          onDelete = {this.props.onDelete}/>
               </div>
             } 
           </div>
           <div className='col-sm-2'>
               <Button img={PlusIcon} onClick={this.props.onNewCube}/>
-            </div>
+          </div>
       </div>
     </div>)
   }
@@ -95,6 +106,8 @@ class Cube
 {
   constructor(_maxDistance, _scene)
   {
+    this.scene = _scene;
+
     const randomRotation = Math.random() * 360; 
     const randomDistance = Math.random() * _maxDistance;
     const randomColour = new THREE.Color();
@@ -105,20 +118,32 @@ class Cube
     // segements is set to 1
     const cubeSize = 10;
     var geo = new THREE.CubeGeometry(cubeSize, cubeSize, cubeSize, 1, 1);
-    var mat = new THREE.MeshLambertMaterial({color: randomColour});
-    this.mesh = new THREE.Mesh(geo, mat);
+    this.material = new THREE.MeshLambertMaterial({color: randomColour});
+    this.mesh = new THREE.Mesh(geo, this.material);
 
     var vec = new THREE.Vector3(randomDistance, cubeSize/2, 0);
     vec.applyAxisAngle(new THREE.Vector3(0, 1, 0), degToRad(randomRotation));
     this.mesh.position.copy(vec);
-    
-    _scene.add(this.mesh);
+    this.scene.add(this.mesh);
   }
 
   setScale(_value)
   {
     console.log("Scaling cube to " + _value);
     this.mesh.scale.set(_value, _value, _value);
+  }
+
+  setColour(_rgb)
+  {
+    var colour = new THREE.Color();
+    // colour picker user 0 - 255, three uses 0 -1
+    colour.setRGB(_rgb.r/255, _rgb.g/255, _rgb.b/255);
+    this.material.setValues({color: colour});
+  }
+
+  deconstruct()
+  {
+    this.scene.remove(this.mesh);
   }
 }
 
@@ -240,11 +265,30 @@ class ThreeScene extends Component
 
   scaleCube(_value)
   {
-    console.log(_value);
-    console.log("Scale this cube: " + this.selectedCube);
     if(this.selectedCube != null) 
     {
       this.cubes[this.selectedCube].setScale(_value);
+    }
+  }
+
+  onNewColour(_colour)
+  {
+    console.log(_colour);
+    if(this.selectedCube != null) 
+    {
+      this.cubes[this.selectedCube].setColour(_colour.rgb);
+    }
+  }
+
+  onDelete()
+  {
+    if(this.selectedCube != null)
+    {
+      console.log("deleting");
+      // remove cube from array
+      this.cubes[this.selectedCube].deconstruct();
+      this.cubes.splice(this.selectedCube, 1);
+      this.selectedCube = this.cubes.length <= 0 ? null : 0;
     }
   }
 
@@ -254,7 +298,9 @@ class ThreeScene extends Component
       <div>
         <TopBar name="Cube 01" 
                 onNewCube={() => this.newCube()}
-                onSlider={(_val) => {this.scaleCube(_val)}} />
+                onSlider={(_val) => {this.scaleCube(_val)}}
+                onNewColour={(_col) => {this.onNewColour(_col)}} 
+                onDelete={() => {this.onDelete()}}/>
 
         <div
           style={{ width: '400px', height: '400px' }}
