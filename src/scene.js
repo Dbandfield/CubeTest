@@ -222,6 +222,10 @@ class ThreeScene extends Component
     // current index in the above array
     this.nextName = 0;
 
+    // to make names unique on cycle
+    this.nameSuffix = 0;
+    this.useSuffix = false;
+
     // scene setup code is in here
     this.setupScene();
 
@@ -457,9 +461,21 @@ class ThreeScene extends Component
       /**
        * 200 is the size of the bounding cube where the Cube object is allowed to spawn
        */
-      const l = this.cubes.objects.push(new Cube(200, this.scene, this.cubeNames[this.nextName]));
+      var name = this.cubeNames[this.nextName];
+      if(this.useSuffix) 
+      {
+        name = name + ' ' + this.nameSuffix;
+      }
+
+      const l = this.cubes.objects.push(new Cube(200, this.scene, name));
       this.nextName ++;
-      if(this.nextName >= this.cubeNames.length) this.nextName = 0;
+      if(this.nextName >= this.cubeNames.length) 
+      {
+        this.nextName = 0;
+        this.nameSuffix += 1;
+        this.useSuffix = true;
+      }
+
       this.cubes.meshes.push(this.cubes.objects[l -1].getMesh());
       this.selectedCube = l - 1;
       this.updateSelectedText();
