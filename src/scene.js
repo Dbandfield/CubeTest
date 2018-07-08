@@ -7,12 +7,15 @@ import MenuIcon from './img/menu.svg';
 function SliderElement(props)
 {
   return (
-    <input type='range' min="3" max="50" 
+    <input type='range' min="3" max="50" defaultValue="10"
            className='slider'
-           onInput={() => (props.onInput())}/>
+           onInput={(event) =>{ 
+              var scaleValue = parseInt(event.target.value);
+              console.log(scaleValue);
+              props.onInput(scaleValue);
+            }}/>
   )
 }
-
 
 function Text(props)
 {
@@ -237,6 +240,7 @@ class ThreeScene extends Component
 
   scaleCube(_value)
   {
+    console.log(_value);
     console.log("Scale this cube: " + this.selectedCube);
     if(this.selectedCube != null) 
     {
@@ -250,7 +254,7 @@ class ThreeScene extends Component
       <div>
         <TopBar name="Cube 01" 
                 onNewCube={() => this.newCube()}
-                onSlider={() => this.scaleCube()} />
+                onSlider={(_val) => {this.scaleCube(_val)}} />
 
         <div
           style={{ width: '400px', height: '400px' }}
