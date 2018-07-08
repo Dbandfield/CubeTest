@@ -27,6 +27,7 @@ body
 
 .confirm-text
 {
+    text-align: center;
     margin: auto;
     padding: 1rem;
     color: rgb(225, 225, 225);
@@ -34,6 +35,7 @@ body
 
 .confirm-btn
 {
+    text-align: center;
     position: relative;
     margin:1rem;
     padding: 0.25rem;
@@ -45,14 +47,16 @@ body
 {
     width: 50%;
     margin: auto;
+    text-align: center;
 
 }
 
 .confirm
 {
     position: fixed;
-    left: 45%;
-    top: 45%;
+    width: 50%;
+    left: 25%;
+    top: 25%;
 }
 
 .confirm-blocker

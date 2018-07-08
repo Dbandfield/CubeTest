@@ -32,7 +32,6 @@ function SliderElement(props)
            className='slider'
            onInput={(event) =>{ 
               var scaleValue = parseInt(event.target.value);
-              console.log(scaleValue);
               props.onInput(scaleValue);
             }}/>
   )
