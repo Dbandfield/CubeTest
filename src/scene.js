@@ -299,7 +299,7 @@ class ThreeScene extends Component
 
     _event.clientX = _event.touches[0].clientX;
     _event.clientY = _event.touches[0].clientY;
-    onDocumentMouseDown(event);
+    this.onDocumentMouseDown(event);
   }
 
   /** Registered as an event listener and 

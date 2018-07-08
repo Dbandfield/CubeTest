@@ -138,3 +138,24 @@ body
     position: absolute;
     right: 0;
 }
+
+@media only screen and (max-width: 768px)
+{
+
+    .scaleIcon
+    {
+        margin:0.25rem;
+    }
+
+    .sidebar
+    {
+        margin: 0;
+        padding: 0;
+    }
+
+    .button
+    {
+        margin: 0;
+        padding: 0;
+    }
+}
