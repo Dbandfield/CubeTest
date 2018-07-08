@@ -1,0 +1,33 @@
+.gui-child
+{
+
+}
+
+.gui-text
+{
+    padding: 0.5rem;
+}
+
+.button
+{
+    padding: 0.5rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.topbar
+{
+    background-color: rgba(0, 0, 0, 0.467);
+    position: absolute;
+}
+
+.sidebar
+{
+    background-color: rgba(0, 0, 0, 0.467);
+    height: 100%;
+}
+
+.slider
+{
+    
+}
