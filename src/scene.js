@@ -6,6 +6,7 @@ import MenuIcon from './img/menu.svg';
 import TrashIcon from './img/trash.svg';
 import ScaleIcon from './img/scale.svg';
 import CameraIcon from './img/camera.svg';
+import ResetIcon from './img/reset.svg';
 import { CirclePicker } from 'react-color';
 
 function Confirmation(props)
@@ -71,6 +72,7 @@ class SideBar extends Component
         <div>
           <img className='scaleIcon' src={ScaleIcon} />
           <SliderElement onInput={this.props.onSlider}/>
+          <Button img={ResetIcon} onClick={() => {this.props.resetScale()}} />
         </div>
         <br/>
         <br/>
@@ -138,7 +140,8 @@ class GUI extends Component
             <SideBar delMsg = {this.props.delMsg}
                       onSlider={this.props.onSlider}
                       onNewColour = {this.props.onNewColour} 
-                      onDelete = {this.props.onDelete}/>
+                      onDelete = {this.props.onDelete}
+                      resetScale = {this.props.resetScale} />
           </div>
         } 
 
@@ -205,6 +208,12 @@ class Cube
     this.scene.add(this.mesh);
 
     this.selected = false;
+  }
+
+  resetScale()
+  {
+    console.log("reset scale");
+    this.mesh.scale.set(1, 1, 1);
   }
 
   selectCube()
@@ -505,6 +514,14 @@ class ThreeScene extends Component
     }
   }
 
+  resetScale()
+  {
+    if(this.selectedCube != null) 
+    {
+      this.cubes.objects[this.selectedCube].resetScale();
+    }
+  }
+
   onDelete()
   {
     if(this.selectedCube != null)
@@ -541,7 +558,8 @@ class ThreeScene extends Component
                 onSlider={(_val) => {this.scaleCube(_val)}}
                 onNewColour={(_col) => {this.onNewColour(_col)}} 
                 onDelete={() => {this.onDelete()}}
-                onResetCam={() => {this.setInitialCameraPos()}}/>
+                onResetCam={() => {this.setInitialCameraPos()}}
+                resetScale={() => {this.resetScale()}}/>
               
           <div className='camera background'>
             <Button img={CameraIcon} onClick={() =>{this.setInitialCameraPos()}} />
