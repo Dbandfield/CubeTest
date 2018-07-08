@@ -163,8 +163,11 @@ class Cube
 
     this.name = _name;
 
-    const randomRotation = Math.random() * 360; 
-    const randomDistance = Math.random() * _maxDistance;
+    // Specify an interval between potential
+    // positions to avoid cube collisions
+    var randomInterval = 15;
+    // work out how may intervals per specified max distance
+    var randomSteps = Math.floor(_maxDistance/randomInterval);
 
     this.colour = new THREE.Color();
     this.selectColour = new THREE.Color();
@@ -183,9 +186,22 @@ class Cube
     this.material = new THREE.MeshLambertMaterial({color: this.colour});
     this.mesh = new THREE.Mesh(geo, this.material);
 
-    var vec = new THREE.Vector3(randomDistance, cubeSize/2, 0);
-    vec.applyAxisAngle(new THREE.Vector3(0, 1, 0), degToRad(randomRotation));
-    this.mesh.position.copy(vec);
+    // This is to extend max distance in negative directions as well
+    var ranX = (Math.random() * 2.0) - 1.0;
+    var ranY = (Math.random() * 2.0) - 1.0;
+    var ranZ = (Math.random() * 2.0) - 1.0;
+
+    console.log(ranX + " " + ranY + " " + ranZ);
+    console.log(randomSteps);
+    console.log(randomInterval);
+
+    ranX = (ranX * randomSteps) * randomInterval;
+    ranY = (ranY * randomSteps) * randomInterval;
+    ranZ = (ranZ * randomSteps) * randomInterval;
+
+    console.log(ranX + " " + ranY + " " + ranZ);
+
+    this.mesh.position.set(ranX, ranY, ranZ);
     this.scene.add(this.mesh);
 
     this.selected = false;
@@ -279,7 +295,6 @@ class ThreeScene extends Component
     this.setupScene();
 
     // Meshes
-    this.floor = this.makeFloor(2000, 2000);
     this.cubes = 
     {
       meshes: [],
@@ -287,8 +302,6 @@ class ThreeScene extends Component
     }
 
     this.selectedCube = null;
-
-    this.scene.add(this.floor);
 
     // controls 
     this.controls = new OrbitControls(this.camera, this.mount);
@@ -423,21 +436,10 @@ class ThreeScene extends Component
     }
   }
 
-  makeFloor(_width, _height)
-  {
-    var geo = new THREE.PlaneBufferGeometry(_width, _height, 1, 1);
-    var mat = new THREE.MeshLambertMaterial({color: 0x99ff99});
-
-    // By default it is facing the wrong way to be a floor 
-    geo.rotateX(-Math.PI / 2);
-
-    return new THREE.Mesh(geo, mat);
-  }
-
   setInitialCameraPos()
   {
     this.camera.position.set(0, 50, 20);
-    this.camera.rotateX(degToRad(-15));  
+    // this.camera.rotateX(degToRad(-15));  
   }
 
   setupScene()
