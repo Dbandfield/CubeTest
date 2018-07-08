@@ -5,7 +5,7 @@ import TrashIcon from './img/trash.svg';
 import ScaleIcon from './img/scale.svg';
 import CameraIcon from './img/camera.svg';
 import ResetIcon from './img/reset.svg';
-import { CirclePicker, GithubPicker } from 'react-color';
+import { CirclePicker } from 'react-color';
 
 function Confirmation(props)
 {
