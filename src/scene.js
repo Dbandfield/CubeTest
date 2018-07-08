@@ -1,177 +1,47 @@
 import React, { Component } from 'react';
 import * as THREE from 'three';
 import OrbitControls from 'three-orbitcontrols';
-import PlusIcon from './img/plus.svg';
-import MenuIcon from './img/menu.svg';
-import TrashIcon from './img/trash.svg';
-import ScaleIcon from './img/scale.svg';
 import CameraIcon from './img/camera.svg';
-import ResetIcon from './img/reset.svg';
-import { CirclePicker } from 'react-color';
+import { GUI, Button } from './gui.js';
 
-function Confirmation(props)
-{
-  return (
-    <div className='confirm-blocker'>
-      <div className='confirm background'>
-        <p className='confirm-text'> 
-          {props.text}
-        </p>
-        <br/>
-        <div className='confirm-btn-grp'>
-          <input value="Yes" className='confirm-btn' type='button' onClick={props.yes}/>
-          <input value="No" className='confirm-btn' type='button' onClick={props.no}/>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function SliderElement(props)
-{
-  return (
-    <input type='range' min="1" max="10" defaultValue="1"
-           className='slider'
-           onInput={(event) =>{ 
-              var scaleValue = parseInt(event.target.value);
-              console.log(scaleValue);
-              props.onInput(scaleValue);
-            }}/>
-  )
-}
-
-function Text(props)
-{
-  return(
-    <p className='gui-text'>
-    {props.value}
-    </p>
-  )
-}
-
-class SideBar extends Component
-{
-  constructor(props)
-  {
-    super(props);
-
-    this.state = {deleteConfirm: false}
-  }
-
-  removeConfirm()
-  {
-    this.setState({deleteConfirm: false});
-  }
-
-  render()
-  {
-    return(
-      <div className='sidebar'>
-        <br/>
-        <br/>
-        <div>
-          <img className='scaleIcon' src={ScaleIcon} />
-          <SliderElement onInput={this.props.onSlider}/>
-          <Button img={ResetIcon} onClick={() => {this.props.resetScale()}} />
-        </div>
-        <br/>
-        <br/>
-
-        <CirclePicker onChangeComplete={this.props.onNewColour}/>
-        <br/>
-        <br/>
-        <Button img={TrashIcon} onClick={() => {this.setState({deleteConfirm: true})}} />
-        {
-          this.state.deleteConfirm &&
-          <Confirmation text = {this.props.delMsg}
-                        yes={()=>
-                          {
-                            this.props.onDelete();
-                            this.removeConfirm();
-                          }}
-                        no={()=> {this.removeConfirm()}} />
-        }
-
-      </div>
-    );
-  }
-   
-}
-
-class GUI extends Component
-{
-  constructor(props)
-  {
-    super(props)
-
-    this.state = 
-    {
-      displaySidebar: false
-    }
-  }
-
-  onClickMenu()
-  {
-    var opp = !this.state.displaySidebar;
-    this.setState({displaySidebar: opp});
-  }
-
-  render()
-  {
-    return (
-    <div className='gui-root container'>
-      <div className='background row'>
-        {this.props.cubesExist &&
-        <div className='col-sm'>
-          <Button img={MenuIcon} onClick={() => {this.onClickMenu()}} />
-        </div>}
-        <div className='col-sm-5'>
-          <Text value={this.props.name} />
-          <Text value={this.props.number} />
-        </div>
-
-        <div className='col-sm'>
-          <Button img={PlusIcon} onClick={this.props.onNewCube}/>
-        </div>
-      </div>
-        {
-          this.state.displaySidebar && this.props.cubesExist &&
-          <div className='row background'>
-            <SideBar delMsg = {this.props.delMsg}
-                      onSlider={this.props.onSlider}
-                      onNewColour = {this.props.onNewColour} 
-                      onDelete = {this.props.onDelete}
-                      resetScale = {this.props.resetScale} />
-          </div>
-        } 
+/**
+ * This script handes the 3D scene.
+ * The GUI is also imported, and displayed over the top.
+ * 
+ * The are 2 main classes here.
+ * 
+ * Cube represents a cube within the scene and various 
+ * behaviours associated with it.
+ * 
+ * ThreeScene derives from React Component and is where
+ * the scene is built and managed.
+ */
 
 
-
-      </div>);
-  }
-}
-
-function Button(props)
-{
-    return(
-        <input type="image" src={props.img} className='button' onClick={props.onClick}>
-        </input>);
-}
-
+ /**
+  * Class Cube
+  * When creating, specify _maxDistance
+  * as the maximum size of the cube-space within
+  * which the cube may appear randomly.
+  * 
+  * Pass the scene object to which it is to be 
+  * added and the name of the cube to identify it.
+  */
 class Cube
 {
   constructor(_maxDistance, _scene, _name)
   {
     this.scene = _scene;
-
     this.name = _name;
 
-    // Specify an interval between potential
-    // positions to avoid cube collisions
-    var randomInterval = 15;
-    // work out how may intervals per specified max distance
-    var randomSteps = Math.floor(_maxDistance/randomInterval);
-
+    // There are two colours associated with
+    // the cube. 
+    // Its regular colour is assigned randomly
+    // on creation, or set via the GUI.
+    // the 'select colour' is generated by taking
+    // the HSL of the regular colour and increasing 
+    // the 'L' element. It display when the cube 
+    // is selected
     this.colour = new THREE.Color();
     this.selectColour = new THREE.Color();
 
@@ -182,27 +52,30 @@ class Cube
     this.colour.getHSL(hsl);
     this.selectColour.setHSL(hsl.h, hsl.s, 0.9);
 
-    // No need for lots of polies at the moment, so
+    // No need for lots of polygons at the moment, so
     // segements is set to 1
     const cubeSize = 10;
     var geo = new THREE.CubeGeometry(cubeSize, cubeSize, cubeSize, 1, 1);
     this.material = new THREE.MeshLambertMaterial({color: this.colour});
     this.mesh = new THREE.Mesh(geo, this.material);
 
+
+    // Generate random position
+
+    // Specify an interval between potential
+    // positions to avoid cube collisions
+    var randomInterval = cubeSize + 5;
+    // work out how may intervals per specified max distance
+    var randomSteps = Math.floor(_maxDistance/randomInterval);
+
     // This is to extend max distance in negative directions as well
     var ranX = (Math.random() * 2.0) - 1.0;
     var ranY = (Math.random() * 2.0) - 1.0;
     var ranZ = (Math.random() * 2.0) - 1.0;
 
-    console.log(ranX + " " + ranY + " " + ranZ);
-    console.log(randomSteps);
-    console.log(randomInterval);
-
     ranX = (ranX * randomSteps) * randomInterval;
     ranY = (ranY * randomSteps) * randomInterval;
     ranZ = (ranZ * randomSteps) * randomInterval;
-
-    console.log(ranX + " " + ranY + " " + ranZ);
 
     this.mesh.position.set(ranX, ranY, ranZ);
     this.scene.add(this.mesh);
@@ -210,10 +83,19 @@ class Cube
     this.selected = false;
   }
 
+  getName()
+  {
+    return this.name;
+  }
+
+  getMesh()
+  {
+    return this.mesh;
+  }
+
   resetScale()
   {
-    console.log("reset scale");
-    this.mesh.scale.set(1, 1, 1);
+    this.setScale(1);
   }
 
   selectCube()
@@ -228,21 +110,30 @@ class Cube
     this.material.setValues({color: this.colour});
   }
 
-  getName()
-  {
-    return this.name;
-  }
-
-  getMesh()
-  {
-    return this.mesh;
-  }
-
+  /**
+   * _value is a number to scale the cube by. 1 is
+   * the original scale.
+   * 
+   * @param {number} _value 
+   */
   setScale(_value)
   {
     this.mesh.scale.set(_value, _value, _value);
   }
 
+  /**
+   * Provide an object with 3 numbers named
+   * r, g and b
+   * 
+   * The colour picker I am using is easier to
+   * convert to Three's system via RGB.
+   * 
+   * However, a little bit of HSL conversion is done
+   * here so that it is easier to work out the 
+   * 'select' colour.
+   * 
+   * @param {object} _rgb 
+   */
   setColour(_rgb)
   {
     this.colour.setRGB(_rgb.r/255, _rgb.g/255, _rgb.b/255);
@@ -261,37 +152,66 @@ class Cube
 
   }
 
+  /**
+   * Call this before removing to tidy up.
+   */
   deconstruct()
   {
         this.scene.remove(this.mesh);
   }
 }
 
+/**
+ * Class ThreeScene
+ * 
+ * A React componenent which also sets up and 
+ * handles the 3D scene. It also renders the GUI
+ * using the imported class.
+ */
 class ThreeScene extends Component 
 {
   constructor(props) 
   {
     super(props)
 
+    /* To allow proper animation from
+    within React */
     this.start = this.start.bind(this)
     this.stop = this.stop.bind(this)
     this.animate = this.animate.bind(this)
 
-    this.state = {selectedName: '',
+    /** React state 
+     * selectedName: name of selected Cube
+     * selectedNumber: number of selected cube.
+     *    note that this one more than the 
+     *    index used within the code, because
+     *    0 based indices will look weird to the user.
+     * cubesExist: indicates if there are cubes
+     *    so the GUI can indicate this.
+     * delMsg: the cube-specific delete message string
+    */
+    this.state = {selectedName: '', 
                   selectedNumber: '',
                   cubesExist: false,
                   delMsg: ''};
 
+    // arbitrary maximum
     this.MAX_CUBES = 20;
   }
 
   componentDidMount() 
   {
+    // three basics
     this.scene = null;
     this.camera = null;
     this.renderer = null;
     this.light = null;
 
+    /** cube indentifiers. This is cycled through in a 
+     * circular fashion, so once it gets to the end
+     * cube names may not be unique.
+     */
+    
     this.cubeNames = 
     [
       'Vincent', 'Jules', 'Mia', 'Butch', 'Winston', 
@@ -299,37 +219,71 @@ class ThreeScene extends Component
       'Brett', 'Roger', 'Lance', 'Jimmie', 'Jody'
     ]
 
+    // current index in the above array
     this.nextName = 0;
 
+    // to make names unique on cycle
+    this.nameSuffix = 0;
+    this.useSuffix = false;
+
+    // scene setup code is in here
     this.setupScene();
 
-    // Meshes
+    /** The cubes. The reason for two
+      separate arrays is that the raycaster
+      needs an array of Object3Ds to query,
+      but cube functionality is easier if
+      the meshes are normally stored in a 
+      custom class.
+    **/
     this.cubes = 
     {
       meshes: [],
       objects: []
     }
 
+    /** The index in the above arrays for the currently
+     * selected cube. It should always be set to null
+     * when there are no more cubes. Always test
+     * specifically for null rather than just falsiness,
+     * because 0 equates to false yet is a valid value.
+     */ 
     this.selectedCube = null;
 
     // controls 
     this.controls = new OrbitControls(this.camera, this.mount);
 
+    /** The screen position of the mouse and a raycaster
+    * (used for cube selection)
+    */
     this.mouse = new THREE.Vector2();
-
-    this.newCube();
-
     this.raycaster = new THREE.Raycaster();
 
+    /** Generate  a single cube to start. This is the same fn 
+    * called in response to the user pressing the new 
+    * cube button
+    */
+    this.newCube();
+
+    /** Event listeners for mouse clicking(for cube selection)
+     * and window resizing
+     */
     document.addEventListener( 'mousedown', (_e)=>{this.onDocumentMouseDown(_e)}, false );
     document.addEventListener( 'touchstart', (_e)=>{this.onDocumentTouchStart(_e)}, false );
     window.addEventListener('resize', ()=>{this.onWindowResize()}, false);
 
-
+    /* Start the animation cycle! */
     this.start();
-
   }
 
+  /* Cleanup when removed */
+  componentWillUnmount() 
+  {
+    this.stop()
+    this.mount.removeChild(this.renderer.domElement)
+  }
+
+  /* Make sure renderer updates properly when window is resized */
   onWindowResize()
   {
     this.camera.aspect = window.innerWidth / window.innerHeight;
@@ -338,12 +292,56 @@ class ThreeScene extends Component
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
-  componentWillUnmount() 
+  /* Registered as event listener */
+  onDocumentTouchStart(_event) 
   {
-    this.stop()
-    this.mount.removeChild(this.renderer.domElement)
+    _event.preventDefault();
+
+    _event.clientX = _event.touches[0].clientX;
+    _event.clientY = _event.touches[0].clientY;
+    onDocumentMouseDown(event);
   }
 
+  /** Registered as an event listener and 
+   * called when mouse is clicked. Works out 
+   * if the mouse is over a cube.
+   */
+  onDocumentMouseDown(_event) 
+  {
+
+    this.mouse.x = (_event.clientX / this.renderer.domElement.clientWidth ) * 2 - 1;
+    this.mouse.y = - (_event.clientY / this.renderer.domElement.clientHeight ) * 2 + 1;
+
+    this.raycaster.setFromCamera(this.mouse, this.camera );
+
+    /** Note, the cube meshes are created in the Cube objects,
+     *  But are also referenced directly in the meshes array.
+     *  This is so the raycaster can query them.
+     */
+    var intersects = this.raycaster.intersectObjects(this.cubes.meshes);
+
+    if (intersects.length > 0) 
+    {
+
+      for(var m in this.cubes.meshes)
+      {
+        if(this.cubes.meshes[m] == intersects[0].object)
+        {
+          this.selectedCube = m;
+          this.cubes.objects[m].selectCube();
+          this.updateSelectedText();
+          this.updateDeleteText();
+        }
+        else
+        {
+          this.cubes.objects[m].deselectCube();
+        }
+      }
+
+    }
+  }
+
+  /* Begin animation loop */
   start() 
   {
     if (!this.frameId) 
@@ -352,11 +350,13 @@ class ThreeScene extends Component
     }
   }
 
+  /* Stop animation loop */
   stop() 
   {
     cancelAnimationFrame(this.frameId)
   }
 
+  /* Actual animation code */
   animate() 
   {
     this.controls.update();
@@ -369,15 +369,10 @@ class ThreeScene extends Component
     this.renderer.render(this.scene, this.camera)
   }
 
-  onDocumentTouchStart(_event) 
-  {
-    _event.preventDefault();
-
-    _event.clientX = _event.touches[0].clientX;
-    _event.clientY = _event.touches[0].clientY;
-    onDocumentMouseDown(event);
-  }
-
+  /** The text that asks if the user really wants 
+   * to delete a cube needs to reflect the name of 
+   * the currently selected cube
+   */
   updateDeleteText()
   {
     if(this.selectedCube != null)
@@ -389,6 +384,10 @@ class ThreeScene extends Component
     }
   }
 
+  /**
+   * The text displaying the currently selected cube name needs
+   * to be updated when a new unit is selected.
+   */
   updateSelectedText()
   {
     var nameStr;
@@ -411,46 +410,18 @@ class ThreeScene extends Component
     }
   }
 
-  onDocumentMouseDown(_event) 
-  {
-
-    // _event.preventDefault();
-
-    this.mouse.x = (_event.clientX / this.renderer.domElement.clientWidth ) * 2 - 1;
-    this.mouse.y = - (_event.clientY / this.renderer.domElement.clientHeight ) * 2 + 1;
-
-    this.raycaster.setFromCamera(this.mouse, this.camera );
-
-    var intersects = this.raycaster.intersectObjects(this.cubes.meshes);
-
-    if (intersects.length > 0) 
-    {
-      for(var m in this.cubes.meshes)
-      {
-        if(this.cubes.meshes[m] == intersects[0].object)
-        {
-          this.selectedCube = m;
-          this.cubes.objects[m].selectCube();
-          this.updateSelectedText();
-          this.updateDeleteText();
-
-
-        }
-        else
-        {
-          this.cubes.objects[m].deselectCube();
-        }
-      }
-
-    }
-  }
-
+  /**
+   * Called on setup and also when user requests 
+   * camera reset.
+   */
   setInitialCameraPos()
   {
     this.camera.position.set(0, 50, 20);
-    // this.camera.rotateX(degToRad(-15));  
   }
 
+  /**
+   * ThreeJS setup
+   */
   setupScene()
   {
     const width = window.innerWidth;
@@ -470,6 +441,7 @@ class ThreeScene extends Component
 
     this.renderer.setClearColor('#000000')
     this.renderer.setSize(width, height)
+    // To make it work with react
     this.mount.appendChild(this.renderer.domElement)
 
     // the light
@@ -479,25 +451,46 @@ class ThreeScene extends Component
   }
 
   /**
-   * Add a new cube to the scene
+   * Add a new cube to the scene. Call from GUI and
+   * also on setup.
    */
   newCube()
   {
     if(this.cubes.objects.length < this.MAX_CUBES)
     {
-      const l = this.cubes.objects.push(new Cube(200, this.scene, this.cubeNames[this.nextName]));
+      /**
+       * 200 is the size of the bounding cube where the Cube object is allowed to spawn
+       */
+      var name = this.cubeNames[this.nextName];
+      if(this.useSuffix) 
+      {
+        name = name + ' ' + this.nameSuffix;
+      }
+
+      const l = this.cubes.objects.push(new Cube(200, this.scene, name));
       this.nextName ++;
-      if(this.nextName >= this.cubeNames.length) this.nextName = 0;
+      if(this.nextName >= this.cubeNames.length) 
+      {
+        this.nextName = 0;
+        this.nameSuffix += 1;
+        this.useSuffix = true;
+      }
+
       this.cubes.meshes.push(this.cubes.objects[l -1].getMesh());
       this.selectedCube = l - 1;
       this.updateSelectedText();
       this.updateDeleteText();
 
-
       this.setState({cubesExist: true});
     }
   }
 
+  /**
+   * Passed to GUI as callback to scale the 
+   * currently selected cube.
+   * 
+   * @param {number} _value 
+   */
   scaleCube(_value)
   {
     if(this.selectedCube != null) 
@@ -506,6 +499,16 @@ class ThreeScene extends Component
     }
   }
 
+  /**
+   * Passed to GUI as callback to change colour
+   * of currently selected cube.
+   * 
+   * _colour is an object with the members:
+   * r, g and b
+   * which are numbers between 0 and 255
+   * 
+   * @param {object} _colour 
+   */
   onNewColour(_colour)
   {
     if(this.selectedCube != null) 
@@ -514,6 +517,10 @@ class ThreeScene extends Component
     }
   }
 
+  /**
+   * Passed to GUI as callback to set currently selected
+   * cube's scale to 1.
+   */
   resetScale()
   {
     if(this.selectedCube != null) 
@@ -522,6 +529,9 @@ class ThreeScene extends Component
     }
   }
 
+  /** Passed to GUI as callback to delete currently 
+   * selected cube.
+   */
   onDelete()
   {
     if(this.selectedCube != null)
@@ -546,32 +556,54 @@ class ThreeScene extends Component
     this.updateDeleteText();
   }
 
+  /* Render the React componenets */
   render() 
   {
+    /**
+     * To avoid having a big DOM element
+     * stretched between the sidebar and 
+     * the camera reset button, the camera
+     * button is separated from the rest of the
+     * GUI.
+     * 
+     * Previously, the DOM element that acted 
+     * as a container for all GUI elements
+     * prevented selecting cubes.
+     * 
+     * TODO: Solve this more elegantly
+     */
     return (
       <div className='scene'>
-        <GUI delMsg={this.state.delMsg}
+        <GUI 
+                // STATE
+                delMsg={this.state.delMsg} 
                 name={this.state.selectedName}
                 number={this.state.selectedNumber}
                 cubesExist={this.state.cubesExist}
-                onNewCube={() => this.newCube()}
+
+                // CALLBACKS
+                onNewCube={() => this.newCube()} 
                 onSlider={(_val) => {this.scaleCube(_val)}}
                 onNewColour={(_col) => {this.onNewColour(_col)}} 
                 onDelete={() => {this.onDelete()}}
                 onResetCam={() => {this.setInitialCameraPos()}}
-                resetScale={() => {this.resetScale()}}/>
+                resetScale={() => {this.resetScale()}}
+          />
               
-          <div className='camera background'>
-            <Button img={CameraIcon} onClick={() =>{this.setInitialCameraPos()}} />
-          </div>
+        <div className='camera background'>
+          <Button img={CameraIcon} onClick={() =>{this.setInitialCameraPos()}} />
+        </div>
         <div
-          style={{ width: '400px', height: '400px' }}
           ref={(mount) => { this.mount = mount }}
         />
       </div>
     )
   }
 }
+
+/**
+ * Utility functions for all classes
+ */
 
 function degToRad(_deg)
 {
