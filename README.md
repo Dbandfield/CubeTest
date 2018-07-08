@@ -8,21 +8,29 @@ It has been tested on Google Chrome and Firefox on Arch Linux 64bit.
 
 ## Running
 
-You can either view this app by visiting this Heroku site PENDING LINK or by cloning this repo and running locally.
+You can view this app cloning this repo and running locally.
 
 ### Running Locally
 
 You must have npm installed.
 
-Once you have cloned the repo run the following commands to install dependencies. 
+Once you have cloned the repo run the following commands to install dependencies.
 
 - `cd CubeTest`
 - `./run.sh install_global_deps`  This installs the webpack development server globally. On Linux this requires `sudo`.
 - `./run.sh install_project_deps` This installs project dependencies
 - `./run.sh start` This starts the server. You can then visit the app at `localhost:3000` in your browser.
 
-## Testing
+### Windows and MacOS
 
-Testing is done via Wercker when deployed to Github. To test locally run
+The bash script won't run on Windows easily and has not been tested on MacOS. In the event that it doesn't work please manually run the following commands:
 
-``` './run.sh test ```
+- Enter the repo: `cd CubeTest`
+
+- Install dev server: `npm install webpack-dev-server -g`
+
+- Install project dependencies: `npm install`
+
+- Start Server: `webpack-dev-server --mode development`
+
+- Go to `localhost:3000` in your browser.
