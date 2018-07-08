@@ -1,6 +1,6 @@
-.gui-child
+.gui-root
 {
-
+    position: absolute;
 }
 
 .gui-text
@@ -18,12 +18,10 @@
 .topbar
 {
     background-color: rgba(0, 0, 0, 0.467);
-    position: absolute;
 }
 
 .sidebar
 {
-    background-color: rgba(0, 0, 0, 0.467);
     height: 100%;
 }
 

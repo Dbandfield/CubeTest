@@ -10,7 +10,7 @@ import { CirclePicker } from 'react-color';
 function SliderElement(props)
 {
   return (
-    <input type='range' min="3" max="50" defaultValue="10"
+    <input type='range' min="1" max="10" defaultValue="1"
            className='slider'
            onInput={(event) =>{ 
               var scaleValue = parseInt(event.target.value);
@@ -69,31 +69,33 @@ class TopBar extends Component
   render()
   {
     return (
-    <div className='topbar container'>
+    <div className='gui-root container'>
       <div className='row'>
-        <div className='col-sm-4'>
-          <div className='row'>
+          <div className='topbar col-sm-4'>
+            <div className='row'>
               <div className='col-sm'>
                 <Button img={MenuIcon} onClick={() => {this.onClickMenu()}} />
               </div>
               <div className='col-sm'>
                 <Text value={this.props.name} />
               </div>
-            </div>
-            {
-              this.state.displaySidebar &&
-              <div className='row'>
-                <SideBar onSlider={this.props.onSlider}
-                          onNewColour = {this.props.onNewColour} 
-                          onDelete = {this.props.onDelete}/>
+              <div className='col-sm'>
+                <Button img={PlusIcon} onClick={this.props.onNewCube}/>
               </div>
-            } 
+            </div>
+              {
+                this.state.displaySidebar &&
+                <div className='row'>
+                  <SideBar onSlider={this.props.onSlider}
+                            onNewColour = {this.props.onNewColour} 
+                            onDelete = {this.props.onDelete}/>
+                </div>
+              } 
           </div>
-          <div className='col-sm-2'>
-              <Button img={PlusIcon} onClick={this.props.onNewCube}/>
-          </div>
-      </div>
-    </div>)
+        </div>
+      </div>);
+
+
   }
 }
 
