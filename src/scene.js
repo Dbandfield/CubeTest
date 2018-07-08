@@ -4,6 +4,7 @@ import OrbitControls from 'three-orbitcontrols';
 import PlusIcon from './img/plus.svg';
 import MenuIcon from './img/menu.svg';
 import TrashIcon from './img/trash.svg';
+import ScaleIcon from './img/scale.svg';
 import { CirclePicker } from 'react-color';
 
 function SliderElement(props)
@@ -34,6 +35,7 @@ function SideBar(props)
     <div className='sidebar'>
       <br/>
       <br/>
+      <img src={ScaleIcon} />
       <SliderElement onInput={props.onSlider}/>
       <br/>
       <br/>
