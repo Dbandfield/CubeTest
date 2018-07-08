@@ -11,13 +11,17 @@ import { CirclePicker } from 'react-color';
 function Confirmation(props)
 {
   return (
-    <div className='confirm'>
-      <p className='confirm-text'> 
-        {props.text}
-      </p>
-      <br/>
-      <input value="Yes" className='confirm-btn' type='button' onClick={props.yes}/>
-      <input value="No" className='confirm-btn' type='button' onClick={props.no}/>
+    <div className='confirm-blocker'>
+      <div className='confirm background'>
+        <p className='confirm-text'> 
+          {props.text}
+        </p>
+        <br/>
+        <div className='confirm-btn-grp'>
+          <input value="Yes" className='confirm-btn' type='button' onClick={props.yes}/>
+          <input value="No" className='confirm-btn' type='button' onClick={props.no}/>
+        </div>
+      </div>
     </div>
   )
 }
@@ -38,7 +42,7 @@ function SliderElement(props)
 function Text(props)
 {
   return(
-    <p className='gui-text gui-child'>
+    <p className='gui-text'>
     {props.value}
     </p>
   )
@@ -64,11 +68,16 @@ class SideBar extends Component
       <div className='sidebar'>
         <br/>
         <br/>
-        <img src={ScaleIcon} />
-        <SliderElement onInput={this.props.onSlider}/>
+        <div>
+          <img className='scaleIcon' src={ScaleIcon} />
+          <SliderElement onInput={this.props.onSlider}/>
+        </div>
         <br/>
         <br/>
+
         <CirclePicker onChangeComplete={this.props.onNewColour}/>
+        <br/>
+        <br/>
         <Button img={TrashIcon} onClick={() => {this.setState({deleteConfirm: true})}} />
         {
           this.state.deleteConfirm &&
@@ -87,7 +96,7 @@ class SideBar extends Component
    
 }
 
-class TopBar extends Component
+class GUI extends Component
 {
   constructor(props)
   {
@@ -109,38 +118,32 @@ class TopBar extends Component
   {
     return (
     <div className='gui-root container'>
-      <div className='row'>
-          <div className='topbar col-sm-4'>
-            <div className='row'>
-              {this.props.cubesExist &&
-              <div className='col-sm'>
-                <Button img={MenuIcon} onClick={() => {this.onClickMenu()}} />
-              </div>}
-              <div className='col-sm'>
-                <Text value={this.props.name} />
-              </div>
-              <div className='col-sm'>
-                <Button img={PlusIcon} onClick={this.props.onNewCube}/>
-              </div>
-            </div>
-              {
-                this.state.displaySidebar && this.props.cubesExist &&
-                <div className='row'>
-                  <SideBar delMsg = {this.props.delMsg}
-                            onSlider={this.props.onSlider}
-                            onNewColour = {this.props.onNewColour} 
-                            onDelete = {this.props.onDelete}/>
-                </div>
-              } 
-          </div>
-          {/* <div className='col-sm-7'>
-          </div> */}
-          <div className='col-sm'>
-              <div className='float-right'>
-                <Button img={CameraIcon} onClick={() =>{this.props.onResetCam()}} />
-                </div>
-          </div>
+      <div className='background row'>
+        {this.props.cubesExist &&
+        <div className='col-sm'>
+          <Button img={MenuIcon} onClick={() => {this.onClickMenu()}} />
+        </div>}
+        <div className='col-sm-5'>
+          <Text value={this.props.name} />
+          <Text value={this.props.number} />
         </div>
+
+        <div className='col-sm'>
+          <Button img={PlusIcon} onClick={this.props.onNewCube}/>
+        </div>
+      </div>
+        {
+          this.state.displaySidebar && this.props.cubesExist &&
+          <div className='row background'>
+            <SideBar delMsg = {this.props.delMsg}
+                      onSlider={this.props.onSlider}
+                      onNewColour = {this.props.onNewColour} 
+                      onDelete = {this.props.onDelete}/>
+          </div>
+        } 
+
+
+
       </div>);
   }
 }
@@ -148,7 +151,7 @@ class TopBar extends Component
 function Button(props)
 {
     return(
-        <input type="image" src={props.img} className='button gui-child' onClick={props.onClick}>
+        <input type="image" src={props.img} className='button' onClick={props.onClick}>
         </input>);
 }
 
@@ -250,6 +253,7 @@ class ThreeScene extends Component
     this.animate = this.animate.bind(this)
 
     this.state = {selectedName: '',
+                  selectedNumber: '',
                   cubesExist: false,
                   delMsg: ''};
 
@@ -297,9 +301,19 @@ class ThreeScene extends Component
 
     document.addEventListener( 'mousedown', (_e)=>{this.onDocumentMouseDown(_e)}, false );
     document.addEventListener( 'touchstart', (_e)=>{this.onDocumentTouchStart(_e)}, false );
+    window.addEventListener('resize', ()=>{this.onWindowResize()}, false);
+
 
     this.start();
 
+  }
+
+  onWindowResize()
+  {
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
   componentWillUnmount() 
@@ -355,19 +369,23 @@ class ThreeScene extends Component
 
   updateSelectedText()
   {
-    var str;
+    var nameStr;
+    var numberStr;
+
     if(this.selectedCube != null)
     {
       var humanIndex = parseInt(this.selectedCube) + 1;
-      str = this.cubes.objects[this.selectedCube].getName() + 
-                ', cube ' + humanIndex + ' of ' +
+      nameStr = this.cubes.objects[this.selectedCube].getName();
+      numberStr = 'Cube ' + humanIndex + ' of ' +
                 this.cubes.objects.length;
-      this.setState({selectedName: str});
+      this.setState({selectedName: nameStr});
+      this.setState({selectedNumber: numberStr});
     }
     else
     {
-      str = "Press the plus to create a cube";
-      this.setState({selectedName: str})
+      nameStr = "Press the plus to create a cube";
+      this.setState({selectedName: nameStr})
+      this.setState({selectedNumber: ''});
     }
   }
 
@@ -513,15 +531,19 @@ class ThreeScene extends Component
   {
     return (
       <div className='scene'>
-        <TopBar delMsg={this.state.delMsg}
+        <GUI delMsg={this.state.delMsg}
                 name={this.state.selectedName}
+                number={this.state.selectedNumber}
                 cubesExist={this.state.cubesExist}
                 onNewCube={() => this.newCube()}
                 onSlider={(_val) => {this.scaleCube(_val)}}
                 onNewColour={(_col) => {this.onNewColour(_col)}} 
                 onDelete={() => {this.onDelete()}}
                 onResetCam={() => {this.setInitialCameraPos()}}/>
-
+              
+          <div className='camera background'>
+            <Button img={CameraIcon} onClick={() =>{this.setInitialCameraPos()}} />
+          </div>
         <div
           style={{ width: '400px', height: '400px' }}
           ref={(mount) => { this.mount = mount }}
