@@ -8,7 +8,7 @@ It has been tested on Google Chrome and Firefox on Arch Linux 64bit.
 
 ## Running
 
-You can view this app cloning this repo and running locally.
+You can use this app by cloning this repo and running it locally.
 
 ### Running Locally
 
