@@ -7,8 +7,6 @@ import CameraIcon from './img/camera.svg';
 import ResetIcon from './img/reset.svg';
 import { CirclePicker } from 'react-color';
 
-
-
 function Confirmation(props)
 {
   return (
@@ -144,9 +142,6 @@ class GUI extends Component
                       resetScale = {this.props.resetScale} />
           </div>
         } 
-
-
-
       </div>);
   }
 }
