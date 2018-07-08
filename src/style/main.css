@@ -1,6 +1,21 @@
-.gui-child
+body
 {
+    position: fixed; 
+    overflow-y: scroll;
+    overflow: hidden;
+    width: 100%;
+    -moz-user-select: none; 
+    -webkit-user-select: none; 
+    -ms-user-select:none; 
+    user-select:none;
+    -o-user-select:none;
+}
 
+.gui-root
+{
+    position: absolute;
+    width: 100%;
+    max-width: 5000px;
 }
 
 .gui-text
@@ -18,16 +33,25 @@
 .topbar
 {
     background-color: rgba(0, 0, 0, 0.467);
-    position: absolute;
 }
 
 .sidebar
 {
-    background-color: rgba(0, 0, 0, 0.467);
     height: 100%;
 }
 
 .slider
 {
-    
+    margin:0.5rem;
+}
+
+.scene
+{
+    /* width: 90%;
+    height: 90%; */
+}
+
+.camera-right
+{
+    margin-right:auto;
 }
