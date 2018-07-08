@@ -6,18 +6,23 @@ import MenuIcon from './img/menu.svg';
 import TrashIcon from './img/trash.svg';
 import ScaleIcon from './img/scale.svg';
 import CameraIcon from './img/camera.svg';
+import ResetIcon from './img/reset.svg';
 import { CirclePicker } from 'react-color';
 
 function Confirmation(props)
 {
   return (
-    <div className='confirm'>
-      <p className='confirm-text'> 
-        {props.text}
-      </p>
-      <br/>
-      <input value="Yes" className='confirm-btn' type='button' onClick={props.yes}/>
-      <input value="No" className='confirm-btn' type='button' onClick={props.no}/>
+    <div className='confirm-blocker'>
+      <div className='confirm background'>
+        <p className='confirm-text'> 
+          {props.text}
+        </p>
+        <br/>
+        <div className='confirm-btn-grp'>
+          <input value="Yes" className='confirm-btn' type='button' onClick={props.yes}/>
+          <input value="No" className='confirm-btn' type='button' onClick={props.no}/>
+        </div>
+      </div>
     </div>
   )
 }
@@ -38,7 +43,7 @@ function SliderElement(props)
 function Text(props)
 {
   return(
-    <p className='gui-text gui-child'>
+    <p className='gui-text'>
     {props.value}
     </p>
   )
@@ -64,11 +69,17 @@ class SideBar extends Component
       <div className='sidebar'>
         <br/>
         <br/>
-        <img src={ScaleIcon} />
-        <SliderElement onInput={this.props.onSlider}/>
+        <div>
+          <img className='scaleIcon' src={ScaleIcon} />
+          <SliderElement onInput={this.props.onSlider}/>
+          <Button img={ResetIcon} onClick={() => {this.props.resetScale()}} />
+        </div>
         <br/>
         <br/>
+
         <CirclePicker onChangeComplete={this.props.onNewColour}/>
+        <br/>
+        <br/>
         <Button img={TrashIcon} onClick={() => {this.setState({deleteConfirm: true})}} />
         {
           this.state.deleteConfirm &&
@@ -87,7 +98,7 @@ class SideBar extends Component
    
 }
 
-class TopBar extends Component
+class GUI extends Component
 {
   constructor(props)
   {
@@ -109,38 +120,33 @@ class TopBar extends Component
   {
     return (
     <div className='gui-root container'>
-      <div className='row'>
-          <div className='topbar col-sm-4'>
-            <div className='row'>
-              {this.props.cubesExist &&
-              <div className='col-sm'>
-                <Button img={MenuIcon} onClick={() => {this.onClickMenu()}} />
-              </div>}
-              <div className='col-sm'>
-                <Text value={this.props.name} />
-              </div>
-              <div className='col-sm'>
-                <Button img={PlusIcon} onClick={this.props.onNewCube}/>
-              </div>
-            </div>
-              {
-                this.state.displaySidebar && this.props.cubesExist &&
-                <div className='row'>
-                  <SideBar delMsg = {this.props.delMsg}
-                            onSlider={this.props.onSlider}
-                            onNewColour = {this.props.onNewColour} 
-                            onDelete = {this.props.onDelete}/>
-                </div>
-              } 
-          </div>
-          {/* <div className='col-sm-7'>
-          </div> */}
-          <div className='col-sm'>
-              <div className='float-right'>
-                <Button img={CameraIcon} onClick={() =>{this.props.onResetCam()}} />
-                </div>
-          </div>
+      <div className='background row'>
+        {this.props.cubesExist &&
+        <div className='col-sm'>
+          <Button img={MenuIcon} onClick={() => {this.onClickMenu()}} />
+        </div>}
+        <div className='col-sm-5'>
+          <Text value={this.props.name} />
+          <Text value={this.props.number} />
         </div>
+
+        <div className='col-sm'>
+          <Button img={PlusIcon} onClick={this.props.onNewCube}/>
+        </div>
+      </div>
+        {
+          this.state.displaySidebar && this.props.cubesExist &&
+          <div className='row background'>
+            <SideBar delMsg = {this.props.delMsg}
+                      onSlider={this.props.onSlider}
+                      onNewColour = {this.props.onNewColour} 
+                      onDelete = {this.props.onDelete}
+                      resetScale = {this.props.resetScale} />
+          </div>
+        } 
+
+
+
       </div>);
   }
 }
@@ -148,7 +154,7 @@ class TopBar extends Component
 function Button(props)
 {
     return(
-        <input type="image" src={props.img} className='button gui-child' onClick={props.onClick}>
+        <input type="image" src={props.img} className='button' onClick={props.onClick}>
         </input>);
 }
 
@@ -160,8 +166,11 @@ class Cube
 
     this.name = _name;
 
-    const randomRotation = Math.random() * 360; 
-    const randomDistance = Math.random() * _maxDistance;
+    // Specify an interval between potential
+    // positions to avoid cube collisions
+    var randomInterval = 15;
+    // work out how may intervals per specified max distance
+    var randomSteps = Math.floor(_maxDistance/randomInterval);
 
     this.colour = new THREE.Color();
     this.selectColour = new THREE.Color();
@@ -180,12 +189,31 @@ class Cube
     this.material = new THREE.MeshLambertMaterial({color: this.colour});
     this.mesh = new THREE.Mesh(geo, this.material);
 
-    var vec = new THREE.Vector3(randomDistance, cubeSize/2, 0);
-    vec.applyAxisAngle(new THREE.Vector3(0, 1, 0), degToRad(randomRotation));
-    this.mesh.position.copy(vec);
+    // This is to extend max distance in negative directions as well
+    var ranX = (Math.random() * 2.0) - 1.0;
+    var ranY = (Math.random() * 2.0) - 1.0;
+    var ranZ = (Math.random() * 2.0) - 1.0;
+
+    console.log(ranX + " " + ranY + " " + ranZ);
+    console.log(randomSteps);
+    console.log(randomInterval);
+
+    ranX = (ranX * randomSteps) * randomInterval;
+    ranY = (ranY * randomSteps) * randomInterval;
+    ranZ = (ranZ * randomSteps) * randomInterval;
+
+    console.log(ranX + " " + ranY + " " + ranZ);
+
+    this.mesh.position.set(ranX, ranY, ranZ);
     this.scene.add(this.mesh);
 
     this.selected = false;
+  }
+
+  resetScale()
+  {
+    console.log("reset scale");
+    this.mesh.scale.set(1, 1, 1);
   }
 
   selectCube()
@@ -250,10 +278,11 @@ class ThreeScene extends Component
     this.animate = this.animate.bind(this)
 
     this.state = {selectedName: '',
+                  selectedNumber: '',
                   cubesExist: false,
                   delMsg: ''};
 
-    this.MAX_CUBES = 15;
+    this.MAX_CUBES = 20;
   }
 
   componentDidMount() 
@@ -265,9 +294,9 @@ class ThreeScene extends Component
 
     this.cubeNames = 
     [
-      'Danny', 'Sandy', 'Kenickie', 'Doody', 
-      'Sonny', 'Putzie', 'Frenchy', 'Jan', 'Marty', 'Cha-cha',
-      'Rizzo'
+      'Vincent', 'Jules', 'Mia', 'Butch', 'Winston', 
+      'Ringo', 'Yolanda', 'Fabienne', 'Marsellus', 'Marvin',
+      'Brett', 'Roger', 'Lance', 'Jimmie', 'Jody'
     ]
 
     this.nextName = 0;
@@ -275,7 +304,6 @@ class ThreeScene extends Component
     this.setupScene();
 
     // Meshes
-    this.floor = this.makeFloor(2000, 2000);
     this.cubes = 
     {
       meshes: [],
@@ -283,8 +311,6 @@ class ThreeScene extends Component
     }
 
     this.selectedCube = null;
-
-    this.scene.add(this.floor);
 
     // controls 
     this.controls = new OrbitControls(this.camera, this.mount);
@@ -297,9 +323,19 @@ class ThreeScene extends Component
 
     document.addEventListener( 'mousedown', (_e)=>{this.onDocumentMouseDown(_e)}, false );
     document.addEventListener( 'touchstart', (_e)=>{this.onDocumentTouchStart(_e)}, false );
+    window.addEventListener('resize', ()=>{this.onWindowResize()}, false);
+
 
     this.start();
 
+  }
+
+  onWindowResize()
+  {
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
   componentWillUnmount() 
@@ -355,19 +391,23 @@ class ThreeScene extends Component
 
   updateSelectedText()
   {
-    var str;
+    var nameStr;
+    var numberStr;
+
     if(this.selectedCube != null)
     {
       var humanIndex = parseInt(this.selectedCube) + 1;
-      str = this.cubes.objects[this.selectedCube].getName() + 
-                ', cube ' + humanIndex + ' of ' +
+      nameStr = this.cubes.objects[this.selectedCube].getName();
+      numberStr = 'Cube ' + humanIndex + ' of ' +
                 this.cubes.objects.length;
-      this.setState({selectedName: str});
+      this.setState({selectedName: nameStr});
+      this.setState({selectedNumber: numberStr});
     }
     else
     {
-      str = "Press the plus to create a cube";
-      this.setState({selectedName: str})
+      nameStr = "Press the plus to create a cube";
+      this.setState({selectedName: nameStr})
+      this.setState({selectedNumber: ''});
     }
   }
 
@@ -405,21 +445,10 @@ class ThreeScene extends Component
     }
   }
 
-  makeFloor(_width, _height)
-  {
-    var geo = new THREE.PlaneBufferGeometry(_width, _height, 1, 1);
-    var mat = new THREE.MeshLambertMaterial({color: 0x99ff99});
-
-    // By default it is facing the wrong way to be a floor 
-    geo.rotateX(-Math.PI / 2);
-
-    return new THREE.Mesh(geo, mat);
-  }
-
   setInitialCameraPos()
   {
     this.camera.position.set(0, 50, 20);
-    this.camera.rotateX(degToRad(-15));  
+    // this.camera.rotateX(degToRad(-15));  
   }
 
   setupScene()
@@ -458,7 +487,7 @@ class ThreeScene extends Component
     {
       const l = this.cubes.objects.push(new Cube(200, this.scene, this.cubeNames[this.nextName]));
       this.nextName ++;
-      if(this.nextName >= l) this.nextName = 0;
+      if(this.nextName >= this.cubeNames.length) this.nextName = 0;
       this.cubes.meshes.push(this.cubes.objects[l -1].getMesh());
       this.selectedCube = l - 1;
       this.updateSelectedText();
@@ -482,6 +511,14 @@ class ThreeScene extends Component
     if(this.selectedCube != null) 
     {
       this.cubes.objects[this.selectedCube].setColour(_colour.rgb);
+    }
+  }
+
+  resetScale()
+  {
+    if(this.selectedCube != null) 
+    {
+      this.cubes.objects[this.selectedCube].resetScale();
     }
   }
 
@@ -513,15 +550,20 @@ class ThreeScene extends Component
   {
     return (
       <div className='scene'>
-        <TopBar delMsg={this.state.delMsg}
+        <GUI delMsg={this.state.delMsg}
                 name={this.state.selectedName}
+                number={this.state.selectedNumber}
                 cubesExist={this.state.cubesExist}
                 onNewCube={() => this.newCube()}
                 onSlider={(_val) => {this.scaleCube(_val)}}
                 onNewColour={(_col) => {this.onNewColour(_col)}} 
                 onDelete={() => {this.onDelete()}}
-                onResetCam={() => {this.setInitialCameraPos()}}/>
-
+                onResetCam={() => {this.setInitialCameraPos()}}
+                resetScale={() => {this.resetScale()}}/>
+              
+          <div className='camera background'>
+            <Button img={CameraIcon} onClick={() =>{this.setInitialCameraPos()}} />
+          </div>
         <div
           style={{ width: '400px', height: '400px' }}
           ref={(mount) => { this.mount = mount }}

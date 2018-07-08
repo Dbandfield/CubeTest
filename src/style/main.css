@@ -14,44 +14,132 @@ body
 .gui-root
 {
     position: absolute;
-    width: 100%;
+    width: 400px;
     max-width: 5000px;
 }
 
 .gui-text
 {
-    padding: 0.5rem;
+    padding-top: 0.5rem;
+    margin-bottom: 0;
+    color: rgb(225, 225, 225);
+}
+
+.confirm-text
+{
+    margin: auto;
+    padding: 1rem;
+    color: rgb(225, 225, 225);
+}
+
+.confirm-btn
+{
+    position: relative;
+    margin:1rem;
+    padding: 0.25rem;
+    border-radius: 0.5rem;
+
+}
+
+.confirm-btn-grp
+{
+    width: 50%;
+    margin: auto;
+
+}
+
+.confirm
+{
+    position: fixed;
+    left: 45%;
+    top: 45%;
+}
+
+.confirm-blocker
+{
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 5000;
 }
 
 .button
 {
-    padding: 0.5rem;
+    padding: 1rem;
+    margin: 1rem;
     margin-left: auto;
     margin-right: auto;
+    vertical-align: middle;
 }
 
-.topbar
+.background
 {
     background-color: rgba(0, 0, 0, 0.467);
+    border-radius: 0.5rem;
+    margin: 0.25rem;
 }
 
 .sidebar
 {
     height: 100%;
-}
-
-.slider
-{
-    margin:0.5rem;
-}
-
-.scene
-{
-    /* width: 90%;
-    height: 90%; */
+    padding-left:0.5rem;
+    padding-right:0.5rem;
+    margin:auto;
 }
 
 .camera-right
 {
     margin-right:auto;
+}
+
+.scaleIcon
+{
+    margin:1rem;
+    margin-left:1rem;
+    margin-right:1rem; 
+}
+
+.slider 
+{
+    -webkit-appearance: none; 
+    appearance: none;
+    height: 25px; 
+    background: #d3d3d3; 
+    outline: none; 
+    opacity: 0.7; 
+    -webkit-transition: .2s; 
+    transition: opacity .2s;
+    vertical-align: middle;
+}
+
+.slider:hover 
+{
+    opacity: 1; 
+}
+
+.slider::-webkit-slider-thumb
+ {
+    -webkit-appearance: none; 
+    appearance: none;
+    width: 25px; 
+    height: 25px;
+    background: rgb(65, 65, 65); 
+    cursor: pointer; 
+ }
+
+.slider::-moz-range-thumb 
+{
+    width: 25px; 
+    height: 25px; 
+    background: rgb(65, 65, 65); 
+    cursor: pointer;
+}
+
+.camera
+{
+    position: absolute;
+    right: 0;
 }
