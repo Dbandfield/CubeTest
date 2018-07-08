@@ -1,9 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import CubeTest from "./app.js";
+import Main from "./app.js";
 
 ReactDOM.render(
-	<CubeTest />,
+	<Main />,
 	document.getElementById("root")
 );
 
