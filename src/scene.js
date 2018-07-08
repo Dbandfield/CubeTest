@@ -282,7 +282,7 @@ class ThreeScene extends Component
                   cubesExist: false,
                   delMsg: ''};
 
-    this.MAX_CUBES = 15;
+    this.MAX_CUBES = 20;
   }
 
   componentDidMount() 
@@ -294,9 +294,9 @@ class ThreeScene extends Component
 
     this.cubeNames = 
     [
-      'Danny', 'Sandy', 'Kenickie', 'Doody', 
-      'Sonny', 'Putzie', 'Frenchy', 'Jan', 'Marty', 'Cha-cha',
-      'Rizzo'
+      'Vincent', 'Jules', 'Mia', 'Butch', 'Winston', 
+      'Ringo', 'Yolanda', 'Fabienne', 'Marsellus', 'Marvin',
+      'Brett', 'Roger', 'Lance', 'Jimmie', 'Jody'
     ]
 
     this.nextName = 0;
@@ -487,7 +487,7 @@ class ThreeScene extends Component
     {
       const l = this.cubes.objects.push(new Cube(200, this.scene, this.cubeNames[this.nextName]));
       this.nextName ++;
-      if(this.nextName >= l) this.nextName = 0;
+      if(this.nextName >= this.cubeNames.length) this.nextName = 0;
       this.cubes.meshes.push(this.cubes.objects[l -1].getMesh());
       this.selectedCube = l - 1;
       this.updateSelectedText();
