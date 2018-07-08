@@ -7,6 +7,20 @@ import TrashIcon from './img/trash.svg';
 import ScaleIcon from './img/scale.svg';
 import { CirclePicker } from 'react-color';
 
+function Confirmation(props)
+{
+  return (
+    <div className='confirm'>
+      <p className='confirm-text'> 
+        {props.text}
+      </p>
+      <br/>
+      <input value="Yes" className='confirm-btn' type='button' onClick={props.yes}/>
+      <input value="No" className='confirm-btn' type='button' onClick={props.no}/>
+    </div>
+  )
+}
+
 function SliderElement(props)
 {
   return (
@@ -29,21 +43,42 @@ function Text(props)
   )
 }
 
-function SideBar(props)
+class SideBar extends Component
 {
-  return(
-    <div className='sidebar'>
-      <br/>
-      <br/>
-      <img src={ScaleIcon} />
-      <SliderElement onInput={props.onSlider}/>
-      <br/>
-      <br/>
-      <CirclePicker onChangeComplete={props.onNewColour}/>
-      <Button img={TrashIcon} onClick={() => {props.onDelete()}} />
+  constructor(props)
+  {
+    super(props);
 
-    </div>
-  );
+    this.state = {deleteConfirm: false}
+  }
+
+  removeConfirm()
+  {
+    this.setState({deleteConfirm: false});
+  }
+
+  render()
+  {
+    return(
+      <div className='sidebar'>
+        <br/>
+        <br/>
+        <img src={ScaleIcon} />
+        <SliderElement onInput={this.props.onSlider}/>
+        <br/>
+        <br/>
+        <CirclePicker onChangeComplete={this.props.onNewColour}/>
+        <Button img={TrashIcon} onClick={() => {this.setState({deleteConfirm: true})}} />
+        {
+          this.state.deleteConfirm &&
+          <Confirmation text = {this.props.delMsg}
+                        yes={()=>{this.props.onDelete()}}
+                        no={()=> {this.removeConfirm()}} />
+        }
+
+      </div>
+    );
+  }
    
 }
 
@@ -61,7 +96,6 @@ class TopBar extends Component
 
   onClickMenu()
   {
-    console.log("hello: " + this.state.displaySidebar);
     var opp = !this.state.displaySidebar;
     this.setState({displaySidebar: opp});
   }
@@ -73,9 +107,10 @@ class TopBar extends Component
       <div className='row'>
           <div className='topbar col-sm-4'>
             <div className='row'>
+              {this.props.cubesExist &&
               <div className='col-sm'>
                 <Button img={MenuIcon} onClick={() => {this.onClickMenu()}} />
-              </div>
+              </div>}
               <div className='col-sm'>
                 <Text value={this.props.name} />
               </div>
@@ -84,9 +119,10 @@ class TopBar extends Component
               </div>
             </div>
               {
-                this.state.displaySidebar &&
+                this.state.displaySidebar && this.props.cubesExist &&
                 <div className='row'>
-                  <SideBar onSlider={this.props.onSlider}
+                  <SideBar delMsg = {this.props.delMsg}
+                            onSlider={this.props.onSlider}
                             onNewColour = {this.props.onNewColour} 
                             onDelete = {this.props.onDelete}/>
                 </div>
@@ -108,46 +144,88 @@ function Button(props)
 
 class Cube
 {
-  constructor(_maxDistance, _scene)
+  constructor(_maxDistance, _scene, _name)
   {
     this.scene = _scene;
 
+    this.name = _name;
+
     const randomRotation = Math.random() * 360; 
     const randomDistance = Math.random() * _maxDistance;
-    const randomColour = new THREE.Color();
+
+    this.colour = new THREE.Color();
+    this.selectColour = new THREE.Color();
+
     // use HSL for prettier randomness
-    randomColour.setHSL(Math.random(), 1, 0.5);
+    this.colour.setHSL(Math.random(), 1, 0.5);
+
+    var hsl = {h:0, s:0, l:0};
+    this.colour.getHSL(hsl);
+    this.selectColour.setHSL(hsl.h, hsl.s, 0.9);
 
     // No need for lots of polies at the moment, so
     // segements is set to 1
     const cubeSize = 10;
     var geo = new THREE.CubeGeometry(cubeSize, cubeSize, cubeSize, 1, 1);
-    this.material = new THREE.MeshLambertMaterial({color: randomColour});
+    this.material = new THREE.MeshLambertMaterial({color: this.colour});
     this.mesh = new THREE.Mesh(geo, this.material);
 
     var vec = new THREE.Vector3(randomDistance, cubeSize/2, 0);
     vec.applyAxisAngle(new THREE.Vector3(0, 1, 0), degToRad(randomRotation));
     this.mesh.position.copy(vec);
     this.scene.add(this.mesh);
+
+    this.selected = false;
+  }
+
+  selectCube()
+  {
+    this.selected = true;
+    this.material.setValues({color: this.selectColour});
+  }
+
+  deselectCube()
+  {
+    this.selected = false;
+    this.material.setValues({color: this.colour});
+  }
+
+  getName()
+  {
+    return this.name;
+  }
+
+  getMesh()
+  {
+    return this.mesh;
   }
 
   setScale(_value)
   {
-    console.log("Scaling cube to " + _value);
     this.mesh.scale.set(_value, _value, _value);
   }
 
   setColour(_rgb)
   {
-    var colour = new THREE.Color();
-    // colour picker user 0 - 255, three uses 0 -1
-    colour.setRGB(_rgb.r/255, _rgb.g/255, _rgb.b/255);
-    this.material.setValues({color: colour});
+    this.colour.setRGB(_rgb.r/255, _rgb.g/255, _rgb.b/255);
+    var hsl = {h:0, s:0, l:0};
+    this.colour.getHSL(hsl);
+    this.selectColour.setHSL(hsl.h, hsl.s, 0.7);
+
+    if(this.selected)
+    {
+      this.material.setValues({color: this.selectColour});
+    }
+    else
+    {
+      this.material.setValues({color: this.colour});
+    }
+
   }
 
   deconstruct()
   {
-    this.scene.remove(this.mesh);
+        this.scene.remove(this.mesh);
   }
 }
 
@@ -161,6 +239,10 @@ class ThreeScene extends Component
     this.start = this.start.bind(this)
     this.stop = this.stop.bind(this)
     this.animate = this.animate.bind(this)
+
+    this.state = {selectedName: '',
+                  cubesExist: false,
+                  delMsg: ''};
   }
 
   componentDidMount() 
@@ -170,22 +252,43 @@ class ThreeScene extends Component
     this.renderer = null;
     this.light = null;
 
+    this.cubeNames = 
+    [
+      'Danny', 'Sandy', 'Kenickie', 'Doody', 
+      'Sonny', 'Putzie', 'Frenchy', 'Jan', 'Marty', 'Cha-cha',
+      'Rizzo'
+    ]
+
+    this.nextName = 0;
+
     this.setupScene();
 
     // Meshes
     this.floor = this.makeFloor(2000, 2000);
-    this.cubes = []
+    this.cubes = 
+    {
+      meshes: [],
+      objects: []
+    }
+
     this.selectedCube = null;
 
     this.scene.add(this.floor);
-    this.scene.add(new THREE.Mesh(new THREE.CubeGeometry(10, 10), new THREE.MeshBasicMaterial({color: 0xff0000})));
 
     // controls 
     this.controls = new OrbitControls(this.camera, this.mount);
 
+    this.mouse = new THREE.Vector2();
+
     this.newCube();
 
+    this.raycaster = new THREE.Raycaster();
+
+    document.addEventListener( 'mousedown', (_e)=>{this.onDocumentMouseDown(_e)}, false );
+    document.addEventListener( 'touchstart', (_e)=>{this.onDocumentTouchStart(_e)}, false );
+
     this.start();
+
   }
 
   componentWillUnmount() 
@@ -217,6 +320,78 @@ class ThreeScene extends Component
   renderScene() 
   {
     this.renderer.render(this.scene, this.camera)
+  }
+
+  onDocumentTouchStart(_event) 
+  {
+    _event.preventDefault();
+
+    _event.clientX = _event.touches[0].clientX;
+    _event.clientY = _event.touches[0].clientY;
+    onDocumentMouseDown(event);
+  }
+
+  updateDeleteText()
+  {
+    if(this.selectedCube != null)
+    {
+
+      var str = "Are you sure you would like to delete " + 
+          this.cubes.objects[this.selectedCube].getName();
+      this.setState({delMsg: str});
+    }
+  }
+
+  updateSelectedText()
+  {
+    var str;
+    if(this.selectedCube != null)
+    {
+      var humanIndex = parseInt(this.selectedCube) + 1;
+      str = this.cubes.objects[this.selectedCube].getName() + 
+                ', cube ' + humanIndex + ' of ' +
+                this.cubes.objects.length;
+      this.setState({selectedName: str});
+    }
+    else
+    {
+      str = "Press the plus to create a cube";
+      this.setState({selectedName: str})
+    }
+  }
+
+  onDocumentMouseDown(_event) 
+  {
+
+    // _event.preventDefault();
+
+    this.mouse.x = (_event.clientX / this.renderer.domElement.clientWidth ) * 2 - 1;
+    this.mouse.y = - (_event.clientY / this.renderer.domElement.clientHeight ) * 2 + 1;
+
+    this.raycaster.setFromCamera(this.mouse, this.camera );
+
+    var intersects = this.raycaster.intersectObjects(this.cubes.meshes);
+
+    if (intersects.length > 0) 
+    {
+      for(var m in this.cubes.meshes)
+      {
+        if(this.cubes.meshes[m] == intersects[0].object)
+        {
+          this.selectedCube = m;
+          this.cubes.objects[m].selectCube();
+          this.updateSelectedText();
+          this.updateDeleteText();
+
+
+        }
+        else
+        {
+          this.cubes.objects[m].deselectCube();
+        }
+      }
+
+    }
   }
 
   makeFloor(_width, _height)
@@ -263,24 +438,31 @@ class ThreeScene extends Component
    */
   newCube()
   {
-    const l = this.cubes.push(new Cube(200, this.scene));
+    const l = this.cubes.objects.push(new Cube(200, this.scene, this.cubeNames[this.nextName]));
+    this.nextName ++;
+    if(this.nextName >= l) this.nextName = 0;
+    this.cubes.meshes.push(this.cubes.objects[l -1].getMesh());
     this.selectedCube = l - 1;
+    this.updateSelectedText();
+    this.updateDeleteText();
+
+
+    this.setState({cubesExist: true});
   }
 
   scaleCube(_value)
   {
     if(this.selectedCube != null) 
     {
-      this.cubes[this.selectedCube].setScale(_value);
+      this.cubes.objects[this.selectedCube].setScale(_value);
     }
   }
 
   onNewColour(_colour)
   {
-    console.log(_colour);
     if(this.selectedCube != null) 
     {
-      this.cubes[this.selectedCube].setColour(_colour.rgb);
+      this.cubes.objects[this.selectedCube].setColour(_colour.rgb);
     }
   }
 
@@ -288,19 +470,33 @@ class ThreeScene extends Component
   {
     if(this.selectedCube != null)
     {
-      console.log("deleting");
       // remove cube from array
-      this.cubes[this.selectedCube].deconstruct();
-      this.cubes.splice(this.selectedCube, 1);
-      this.selectedCube = this.cubes.length <= 0 ? null : 0;
+      this.cubes.objects[this.selectedCube].deconstruct();
+      this.cubes.objects.splice(this.selectedCube, 1);
+      this.cubes.meshes.splice(this.selectedCube, 1);
+
+      if(this.cubes.objects.length <= 0)
+      {
+        this.selectedCube = null;
+        this.setState({cubesExist: false});
+      }
+      else
+      {
+        this.selectedCube = 0;
+      }
     }
+
+    this.updateSelectedText();
+    this.updateDeleteText();
   }
 
   render() 
   {
     return (
-      <div>
-        <TopBar name="Cube 01" 
+      <div className='scene'>
+        <TopBar delMsg={this.state.delMsg}
+                name={this.state.selectedName}
+                cubesExist={this.state.cubesExist}
                 onNewCube={() => this.newCube()}
                 onSlider={(_val) => {this.scaleCube(_val)}}
                 onNewColour={(_col) => {this.onNewColour(_col)}} 
