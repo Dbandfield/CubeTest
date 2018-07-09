@@ -73,9 +73,9 @@ class Cube
     var ranY = (Math.random() * 2.0) - 1.0;
     var ranZ = (Math.random() * 2.0) - 1.0;
 
-    ranX = (ranX * randomSteps) * randomInterval;
-    ranY = (ranY * randomSteps) * randomInterval;
-    ranZ = (ranZ * randomSteps) * randomInterval;
+    ranX = Math.floor(ranX * randomSteps) * randomInterval;
+    ranY = Math.floor(ranY * randomSteps) * randomInterval;
+    ranZ = Math.floor(ranZ * randomSteps) * randomInterval;
 
     this.mesh.position.set(ranX, ranY, ranZ);
     this.scene.add(this.mesh);
@@ -379,7 +379,7 @@ class ThreeScene extends Component
     {
 
       var str = "Are you sure you would like to delete " + 
-          this.cubes.objects[this.selectedCube].getName();
+          this.cubes.objects[this.selectedCube].getName() + "?";
       this.setState({delMsg: str});
     }
   }
